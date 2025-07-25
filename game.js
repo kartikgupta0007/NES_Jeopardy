@@ -11,7 +11,7 @@ class JeopardyGame {
         
         this.currentSetupRound = 0;
         this.editingCell = { round: 0, category: 0, value: 0 };
-        this.currentQuestion = { question: '', answer: '' };
+        this.currentQuestion = { question: '', answer: '', value: 0 };
         
         this.init();
     }
@@ -20,6 +20,7 @@ class JeopardyGame {
         this.initializeGame();
         this.setupEventListeners();
         this.loadGameState();
+        this.showHomeScreen();
     }
     
     initializeGame() {
@@ -77,6 +78,30 @@ class JeopardyGame {
                 this.hideAllModals();
             }
         });
+    }
+
+    // Screen Navigation
+    showHomeScreen() {
+        this.hideAllScreens();
+        document.getElementById('homeScreen').classList.remove('hidden');
+    }
+
+    showSetupScreen() {
+        this.hideAllScreens();
+        document.getElementById('setupScreen').classList.remove('hidden');
+        this.updateSetupUI();
+    }
+
+    showGameScreen() {
+        this.hideAllScreens();
+        document.getElementById('gameScreen').classList.remove('hidden');
+        this.initializePlayMode();
+    }
+
+    hideAllScreens() {
+        document.getElementById('homeScreen').classList.add('hidden');
+        document.getElementById('setupScreen').classList.add('hidden');
+        document.getElementById('gameScreen').classList.add('hidden');
     }
     
     updateNumberOfRounds(numRounds) {
@@ -246,7 +271,7 @@ class JeopardyGame {
         this.hideModal('setupQuestionModal');
     }
     
-    finishSetup() {
+    startGame() {
         // Validate that all questions are filled
         let allFilled = true;
         const missingQuestions = [];
@@ -269,10 +294,7 @@ class JeopardyGame {
             return;
         }
         
-        document.getElementById('setupMode').classList.add('hidden');
-        document.getElementById('playMode').classList.remove('hidden');
-        
-        this.initializePlayMode();
+        this.showGameScreen();
         this.playSound('start');
     }
     
@@ -285,7 +307,7 @@ class JeopardyGame {
     
     updatePlayUI() {
         const currentRound = this.gameState.rounds[this.gameState.currentRound];
-        document.getElementById('currentRoundTitle').textContent = currentRound.name;
+        document.getElementById('currentRoundTitle').textContent = currentRound.name.toUpperCase();
         
         this.updateGameGrid();
     }
@@ -299,7 +321,7 @@ class JeopardyGame {
         headers.innerHTML = '';
         currentRound.categories.forEach(category => {
             const th = document.createElement('th');
-            th.textContent = category;
+            th.textContent = category.toUpperCase();
             headers.appendChild(th);
         });
         
@@ -331,7 +353,7 @@ class JeopardyGame {
         const category = round.categories[categoryIndex];
         const questionData = round.questions[category][value];
         
-        this.currentQuestion = questionData;
+        this.currentQuestion = { ...questionData, value };
         
         document.getElementById('questionText').textContent = questionData.question;
         document.getElementById('answerText').textContent = questionData.answer;
@@ -356,6 +378,10 @@ class JeopardyGame {
     closeQuestion() {
         this.hideModal('questionModal');
     }
+
+    getCurrentQuestionValue() {
+        return this.currentQuestion.value || 0;
+    }
     
     updateScore(player, amount) {
         this.gameState.scores[`player${player}`] += amount;
@@ -365,8 +391,8 @@ class JeopardyGame {
     }
     
     updateScoreboard() {
-        document.getElementById('player1Score').textContent = `$${this.gameState.scores.player1}`;
-        document.getElementById('player2Score').textContent = `$${this.gameState.scores.player2}`;
+        document.getElementById('player1Score').textContent = this.gameState.scores.player1;
+        document.getElementById('player2Score').textContent = this.gameState.scores.player2;
     }
     
     // Modal Management
@@ -385,48 +411,61 @@ class JeopardyGame {
         });
     }
     
-    // Menu Functions
-    showMainMenu() {
-        this.showModal('mainMenu');
+    // Settings Functions
+    showSettings() {
+        this.showModal('settingsModal');
     }
     
-    hideMainMenu() {
-        this.hideModal('mainMenu');
+    hideSettings() {
+        this.hideModal('settingsModal');
     }
-    
-    startNewGame() {
-        this.hideAllModals();
-        this.resetGame();
-    }
-    
-    resetGame() {
-        if (confirm('Are you sure you want to start a new game? All progress will be lost.')) {
-            document.getElementById('setupMode').classList.remove('hidden');
-            document.getElementById('playMode').classList.add('hidden');
-            
-            this.initializeGame();
-            this.gameState.scores = { player1: 0, player2: 0 };
-            this.gameState.usedCells = new Set();
-            this.currentSetupRound = 0;
-            this.gameState.currentRound = 0;
-            
-            // Reset form
-            document.getElementById('numRounds').value = 1;
-            for (let i = 1; i <= 5; i++) {
-                document.getElementById(`cat${i}`).value = '';
-            }
-            
-            this.playSound('reset');
-        }
-    }
-    
+
+    // Help Functions
     showHelp() {
-        this.hideModal('mainMenu');
         this.showModal('helpModal');
     }
     
     hideHelp() {
         this.hideModal('helpModal');
+    }
+    
+    // Game Management
+    newGame() {
+        if (confirm('Are you sure you want to start a new game? All progress will be lost.')) {
+            this.resetGameState();
+            this.showSetupScreen();
+            this.playSound('reset');
+        }
+    }
+
+    resetGameState() {
+        this.initializeGame();
+        this.gameState.scores = { player1: 0, player2: 0 };
+        this.gameState.usedCells = new Set();
+        this.currentSetupRound = 0;
+        this.gameState.currentRound = 0;
+        
+        // Reset form
+        document.getElementById('numRounds').value = 1;
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`cat${i}`).value = '';
+        }
+    }
+
+    quitGame() {
+        if (confirm('Are you sure you want to quit? Any unsaved progress will be lost.')) {
+            this.showHomeScreen();
+        }
+    }
+
+    goHome() {
+        if (confirm('Return to home screen? Any unsaved progress will be lost.')) {
+            this.showHomeScreen();
+        }
+    }
+
+    loadSavedGame() {
+        alert('Load saved game feature coming soon!');
     }
     
     toggleSFX() {
@@ -445,50 +484,54 @@ class JeopardyGame {
     playSound(type) {
         if (!this.gameState.settings.sfx) return;
         
-        // Create different pitched beeps for different actions
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        let frequency = 440; // Default A note
-        let duration = 0.1;
-        
-        switch (type) {
-            case 'question':
-                frequency = 659.25; // E note
-                duration = 0.3;
-                break;
-            case 'reveal':
-                frequency = 523.25; // C note
-                duration = 0.2;
-                break;
-            case 'score':
-                frequency = 783.99; // G note
-                duration = 0.15;
-                break;
-            case 'save':
-                frequency = 880; // A note higher octave
-                duration = 0.1;
-                break;
-            case 'start':
-                frequency = 1046.5; // C note higher octave
-                duration = 0.4;
-                break;
-            case 'reset':
-                frequency = 220; // A note lower octave
-                duration = 0.3;
-                break;
+        try {
+            // Create different pitched beeps for different actions
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            let frequency = 440; // Default A note
+            let duration = 0.1;
+            
+            switch (type) {
+                case 'question':
+                    frequency = 659.25; // E note
+                    duration = 0.3;
+                    break;
+                case 'reveal':
+                    frequency = 523.25; // C note
+                    duration = 0.2;
+                    break;
+                case 'score':
+                    frequency = 783.99; // G note
+                    duration = 0.15;
+                    break;
+                case 'save':
+                    frequency = 880; // A note higher octave
+                    duration = 0.1;
+                    break;
+                case 'start':
+                    frequency = 1046.5; // C note higher octave
+                    duration = 0.4;
+                    break;
+                case 'reset':
+                    frequency = 220; // A note lower octave
+                    duration = 0.3;
+                    break;
+            }
+            
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        } catch (e) {
+            console.log('Audio playback failed:', e);
         }
-        
-        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + duration);
     }
     
     // Local Storage
@@ -530,20 +573,21 @@ class JeopardyGame {
 // Global functions for HTML onclick events
 let game;
 
-function showMainMenu() {
-    game.showMainMenu();
+// Home Screen Functions
+function showNewGameScreen() {
+    game.showSetupScreen();
 }
 
-function hideMainMenu() {
-    game.hideMainMenu();
+function loadSavedGame() {
+    game.loadSavedGame();
 }
 
-function startNewGame() {
-    game.startNewGame();
+function showSettings() {
+    game.showSettings();
 }
 
-function resetGame() {
-    game.resetGame();
+function hideSettings() {
+    game.hideSettings();
 }
 
 function showHelp() {
@@ -554,6 +598,14 @@ function hideHelp() {
     game.hideHelp();
 }
 
+function quitGame() {
+    game.quitGame();
+}
+
+function goHome() {
+    game.goHome();
+}
+
 function toggleSFX() {
     game.toggleSFX();
 }
@@ -562,8 +614,9 @@ function toggleMusic() {
     game.toggleMusic();
 }
 
-function finishSetup() {
-    game.finishSetup();
+// Setup Functions
+function startGame() {
+    game.startGame();
 }
 
 function saveQuestion() {
@@ -574,6 +627,7 @@ function cancelQuestion() {
     game.cancelQuestion();
 }
 
+// Game Functions
 function revealAnswer() {
     game.revealAnswer();
 }
@@ -584,6 +638,10 @@ function closeQuestion() {
 
 function updateScore(player, amount) {
     game.updateScore(player, amount);
+}
+
+function getCurrentQuestionValue() {
+    return game.getCurrentQuestionValue();
 }
 
 // Initialize game when page loads
