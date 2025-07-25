@@ -19,6 +19,7 @@ class JeopardyGame {
     init() {
         this.initializeGame();
         this.setupEventListeners();
+        this.initializeParallaxBackgrounds();
         this.loadGameState();
         this.showHomeScreen();
     }
@@ -62,6 +63,15 @@ class JeopardyGame {
                 this.updateCategory(i - 1, e.target.value);
             });
         }
+        
+        // Question editor preview functionality
+        document.getElementById('questionInput').addEventListener('input', (e) => {
+            this.updateQuestionPreview();
+        });
+        
+        document.getElementById('answerInput').addEventListener('input', (e) => {
+            this.updateQuestionPreview();
+        });
         
         // Modal close on overlay click
         document.querySelectorAll('.modal-overlay').forEach(modal => {
@@ -118,9 +128,13 @@ class JeopardyGame {
             this.gameState.rounds.pop();
         }
         
+        // Ensure current setup round is valid
         this.currentSetupRound = Math.min(this.currentSetupRound, numRounds - 1);
+        
+        // Update UI components
         this.updateRoundTabs();
         this.updateSetupUI();
+        this.saveGameState();
     }
     
     updateCategory(index, value) {
@@ -149,24 +163,29 @@ class JeopardyGame {
         const setupTabs = document.getElementById('roundTabs');
         const playTabs = document.getElementById('playRoundTabs');
         
-        setupTabs.innerHTML = '';
-        playTabs.innerHTML = '';
-        
-        this.gameState.rounds.forEach((round, index) => {
-            // Setup tabs
-            const setupTab = document.createElement('div');
-            setupTab.className = `round-tab ${index === this.currentSetupRound ? 'active' : ''}`;
-            setupTab.textContent = round.name;
-            setupTab.onclick = () => this.switchSetupRound(index);
-            setupTabs.appendChild(setupTab);
+        if (setupTabs) {
+            setupTabs.innerHTML = '';
             
-            // Play tabs
-            const playTab = document.createElement('div');
-            playTab.className = `round-tab ${index === this.gameState.currentRound ? 'active' : ''}`;
-            playTab.textContent = round.name;
-            playTab.onclick = () => this.switchPlayRound(index);
-            playTabs.appendChild(playTab);
-        });
+            this.gameState.rounds.forEach((round, index) => {
+                const setupTab = document.createElement('div');
+                setupTab.className = `round-tab ${index === this.currentSetupRound ? 'active' : ''}`;
+                setupTab.textContent = round.name;
+                setupTab.onclick = () => this.switchSetupRound(index);
+                setupTabs.appendChild(setupTab);
+            });
+        }
+        
+        if (playTabs) {
+            playTabs.innerHTML = '';
+            
+            this.gameState.rounds.forEach((round, index) => {
+                const playTab = document.createElement('div');
+                playTab.className = `round-tab ${index === this.gameState.currentRound ? 'active' : ''}`;
+                playTab.textContent = round.name;
+                playTab.onclick = () => this.switchPlayRound(index);
+                playTabs.appendChild(playTab);
+            });
+        }
     }
     
     switchSetupRound(roundIndex) {
@@ -194,39 +213,65 @@ class JeopardyGame {
     
     updateSetupGrid() {
         const currentRound = this.gameState.rounds[this.currentSetupRound];
-        const headers = document.getElementById('setupHeaders');
-        const body = document.getElementById('setupBody');
+        const headers = document.getElementById('categoryHeaders');
+        const grid = document.getElementById('questionsGrid');
         
-        // Update headers
+        // Update category headers
         headers.innerHTML = '';
         currentRound.categories.forEach(category => {
-            const th = document.createElement('th');
-            th.textContent = category;
-            headers.appendChild(th);
+            const header = document.createElement('div');
+            header.className = 'category-header';
+            header.textContent = category || 'Category';
+            headers.appendChild(header);
         });
         
-        // Update body
-        body.innerHTML = '';
+        // Update questions grid
+        grid.innerHTML = '';
         const values = [100, 200, 300, 400, 500];
         
         values.forEach(value => {
-            const row = document.createElement('tr');
             currentRound.categories.forEach((category, catIndex) => {
-                const cell = document.createElement('td');
-                cell.textContent = `$${value}`;
+                const cell = document.createElement('div');
+                cell.className = 'question-cell';
                 
-                const hasData = currentRound.questions[category] && 
-                               currentRound.questions[category][value] &&
-                               currentRound.questions[category][value].question.trim() !== '';
+                const questionData = currentRound.questions[category] && 
+                                   currentRound.questions[category][value];
                 
-                if (hasData) {
+                if (questionData && questionData.question.trim() !== '') {
                     cell.classList.add('filled');
+                    
+                    const valueDiv = document.createElement('div');
+                    valueDiv.className = 'question-value';
+                    valueDiv.textContent = `$${value}`;
+                    
+                    const questionDiv = document.createElement('div');
+                    questionDiv.className = 'question-preview';
+                    questionDiv.textContent = questionData.question.length > 60 ? 
+                        questionData.question.substring(0, 60) + '...' : 
+                        questionData.question;
+                    
+                    const statusDiv = document.createElement('div');
+                    statusDiv.className = 'question-status';
+                    statusDiv.textContent = '✓ Complete';
+                    
+                    cell.appendChild(valueDiv);
+                    cell.appendChild(questionDiv);
+                    cell.appendChild(statusDiv);
+                } else {
+                    cell.classList.add('empty');
+                    
+                    const emptyContent = document.createElement('div');
+                    emptyContent.className = 'empty-cell-content';
+                    emptyContent.innerHTML = `
+                        <div class="question-value">$${value}</div>
+                        <div>?</div>
+                    `;
+                    cell.appendChild(emptyContent);
                 }
                 
                 cell.onclick = () => this.editQuestion(this.currentSetupRound, catIndex, value);
-                row.appendChild(cell);
+                grid.appendChild(cell);
             });
-            body.appendChild(row);
         });
     }
     
@@ -239,6 +284,9 @@ class JeopardyGame {
         
         document.getElementById('questionInput').value = questionData.question || '';
         document.getElementById('answerInput').value = questionData.answer || '';
+        
+        // Update preview immediately
+        this.updateQuestionPreview();
         
         this.showModal('setupQuestionModal');
     }
@@ -269,6 +317,95 @@ class JeopardyGame {
     
     cancelQuestion() {
         this.hideModal('setupQuestionModal');
+    }
+    
+    deleteQuestion() {
+        if (confirm('Are you sure you want to delete this question?')) {
+            const { round, category, value } = this.editingCell;
+            const currentRound = this.gameState.rounds[round];
+            const categoryName = currentRound.categories[category];
+            
+            if (currentRound.questions[categoryName] && currentRound.questions[categoryName][value]) {
+                currentRound.questions[categoryName][value] = { question: '', answer: '' };
+            }
+            
+            this.hideModal('setupQuestionModal');
+            this.updateSetupGrid();
+            this.playSound('save');
+        }
+    }
+    
+    updateQuestionPreview() {
+        const question = document.getElementById('questionInput').value;
+        const answer = document.getElementById('answerInput').value;
+        
+        document.getElementById('questionPreview').textContent = 
+            question || 'Type your question above';
+        document.getElementById('answerPreview').textContent = 
+            answer || 'Type your answer above';
+    }
+    
+    initializeParallaxBackgrounds() {
+        // Set up random cloud backgrounds for parallax layers
+        const cloudFolders = ['Clouds 1', 'Clouds 2', 'Clouds 3', 'Clouds 4', 'Clouds 5', 'Clouds 6', 'Clouds 7', 'Clouds 8'];
+        
+        // Randomly select different cloud sets for each screen and layer
+        const homeBackClouds = cloudFolders[Math.floor(Math.random() * cloudFolders.length)];
+        const homeMiddleClouds = cloudFolders[Math.floor(Math.random() * cloudFolders.length)];
+        const homeFrontClouds = cloudFolders[Math.floor(Math.random() * cloudFolders.length)];
+        
+        const setupBackClouds = cloudFolders[Math.floor(Math.random() * cloudFolders.length)];
+        const setupMiddleClouds = cloudFolders[Math.floor(Math.random() * cloudFolders.length)];
+        const setupFrontClouds = cloudFolders[Math.floor(Math.random() * cloudFolders.length)];
+        
+        const gameBackClouds = cloudFolders[Math.floor(Math.random() * cloudFolders.length)];
+        const gameMiddleClouds = cloudFolders[Math.floor(Math.random() * cloudFolders.length)];
+        const gameFrontClouds = cloudFolders[Math.floor(Math.random() * cloudFolders.length)];
+        
+        // Set background images for home screen
+        const homeBackLayer = document.getElementById('parallax-back-home');
+        const homeMiddleLayer = document.getElementById('parallax-middle-home');
+        const homeFrontLayer = document.getElementById('parallax-front-home');
+        
+        if (homeBackLayer) {
+            homeBackLayer.style.backgroundImage = `url('assets/Backgrounds/${homeBackClouds}/1.png')`;
+        }
+        if (homeMiddleLayer) {
+            homeMiddleLayer.style.backgroundImage = `url('assets/Backgrounds/${homeMiddleClouds}/2.png')`;
+        }
+        if (homeFrontLayer) {
+            homeFrontLayer.style.backgroundImage = `url('assets/Backgrounds/${homeFrontClouds}/3.png')`;
+        }
+        
+        // Set background images for setup screen
+        const setupBackLayer = document.getElementById('parallax-back');
+        const setupMiddleLayer = document.getElementById('parallax-middle');
+        const setupFrontLayer = document.getElementById('parallax-front');
+        
+        if (setupBackLayer) {
+            setupBackLayer.style.backgroundImage = `url('assets/Backgrounds/${setupBackClouds}/1.png')`;
+        }
+        if (setupMiddleLayer) {
+            setupMiddleLayer.style.backgroundImage = `url('assets/Backgrounds/${setupMiddleClouds}/2.png')`;
+        }
+        if (setupFrontLayer) {
+            setupFrontLayer.style.backgroundImage = `url('assets/Backgrounds/${setupFrontClouds}/3.png')`;
+        }
+        
+        // Set background images for game screen
+        const gameBackLayer = document.getElementById('parallax-back-game');
+        const gameMiddleLayer = document.getElementById('parallax-middle-game');
+        const gameFrontLayer = document.getElementById('parallax-front-game');
+        
+        if (gameBackLayer) {
+            gameBackLayer.style.backgroundImage = `url('assets/Backgrounds/${gameBackClouds}/1.png')`;
+        }
+        if (gameMiddleLayer) {
+            gameMiddleLayer.style.backgroundImage = `url('assets/Backgrounds/${gameMiddleClouds}/2.png')`;
+        }
+        if (gameFrontLayer) {
+            gameFrontLayer.style.backgroundImage = `url('assets/Backgrounds/${gameFrontClouds}/3.png')`;
+        }
     }
     
     startGame() {
@@ -303,6 +440,18 @@ class JeopardyGame {
         this.gameState.scores = { player1: 0, player2: 0 };
         this.updatePlayUI();
         this.updateScoreboard();
+        this.loadPlayerNames();
+        this.setupPlayerNameListeners();
+    }
+    
+    setupPlayerNameListeners() {
+        document.getElementById('player1Name').addEventListener('change', () => {
+            this.savePlayerNames();
+        });
+        
+        document.getElementById('player2Name').addEventListener('change', () => {
+            this.savePlayerNames();
+        });
     }
     
     updatePlayUI() {
@@ -390,9 +539,32 @@ class JeopardyGame {
         this.saveGameState();
     }
     
+    changeScore(player, amount) {
+        this.gameState.scores[`player${player}`] += amount;
+        this.updateScoreboard();
+        this.playSound('score');
+        this.saveGameState();
+    }
+    
     updateScoreboard() {
         document.getElementById('player1Score').textContent = this.gameState.scores.player1;
         document.getElementById('player2Score').textContent = this.gameState.scores.player2;
+    }
+    
+    loadPlayerNames() {
+        const player1Name = localStorage.getItem('player1Name') || 'Player 1';
+        const player2Name = localStorage.getItem('player2Name') || 'Player 2';
+        
+        document.getElementById('player1Name').value = player1Name;
+        document.getElementById('player2Name').value = player2Name;
+    }
+    
+    savePlayerNames() {
+        const player1Name = document.getElementById('player1Name').value;
+        const player2Name = document.getElementById('player2Name').value;
+        
+        localStorage.setItem('player1Name', player1Name);
+        localStorage.setItem('player2Name', player2Name);
     }
     
     // Modal Management
@@ -638,6 +810,10 @@ function closeQuestion() {
 
 function updateScore(player, amount) {
     game.updateScore(player, amount);
+}
+
+function changeScore(player, amount) {
+    game.changeScore(player, amount);
 }
 
 function getCurrentQuestionValue() {
