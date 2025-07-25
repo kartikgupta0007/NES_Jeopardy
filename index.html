@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Jeopardy Game</title>
+    
+    <!-- NES.css and Press Start 2P font -->
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <link href="https://unpkg.com/nes.css/css/nes.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Global Navigation -->
+    <nav class="navbar">
+        <div class="nes-container is-dark">
+            <div class="nav-content">
+                <h1 class="game-title">🎮 PIXEL JEOPARDY</h1>
+                <div class="nav-buttons">
+                    <button type="button" class="nes-btn is-primary" onclick="showMainMenu()">Menu</button>
+                    <button type="button" class="nes-btn is-error" onclick="resetGame()">New Game</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Menu Modal -->
+    <div id="mainMenu" class="modal-overlay hidden">
+        <div class="nes-container is-rounded with-title">
+            <p class="title">Main Menu</p>
+            <div class="menu-options">
+                <button type="button" class="nes-btn is-success menu-btn" onclick="startNewGame()">Start Game</button>
+                <button type="button" class="nes-btn is-warning menu-btn" onclick="toggleSFX()">
+                    <span id="sfxStatus">SFX: ON</span>
+                </button>
+                <button type="button" class="nes-btn is-warning menu-btn" onclick="toggleMusic()">
+                    <span id="musicStatus">Music: ON</span>
+                </button>
+                <button type="button" class="nes-btn menu-btn" onclick="showHelp()">Help</button>
+                <button type="button" class="nes-btn is-error menu-btn" onclick="hideMainMenu()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal-overlay hidden">
+        <div class="nes-container is-rounded with-title">
+            <p class="title">How to Play</p>
+            <div class="help-content">
+                <p>1. Set up your game by entering categories and questions</p>
+                <p>2. Click on dollar amounts to reveal questions</p>
+                <p>3. Click "Reveal Answer" to show the answer</p>
+                <p>4. Manually update player scores</p>
+                <p>5. Win by having the highest score!</p>
+                <button type="button" class="nes-btn is-primary" onclick="hideHelp()">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Mode -->
+    <div id="setupMode" class="game-mode">
+        <div class="nes-container with-title">
+            <p class="title">Game Setup</p>
+            
+            <!-- Round Selection -->
+            <div class="setup-section">
+                <label for="numRounds">Number of Rounds:</label>
+                <div class="nes-field">
+                    <input type="number" id="numRounds" class="nes-input" min="1" max="3" value="1">
+                </div>
+            </div>
+
+            <!-- Categories Setup -->
+            <div class="setup-section">
+                <h3>Categories:</h3>
+                <div class="categories-input">
+                    <div class="nes-field">
+                        <input type="text" id="cat1" class="nes-input" placeholder="Category 1">
+                    </div>
+                    <div class="nes-field">
+                        <input type="text" id="cat2" class="nes-input" placeholder="Category 2">
+                    </div>
+                    <div class="nes-field">
+                        <input type="text" id="cat3" class="nes-input" placeholder="Category 3">
+                    </div>
+                    <div class="nes-field">
+                        <input type="text" id="cat4" class="nes-input" placeholder="Category 4">
+                    </div>
+                    <div class="nes-field">
+                        <input type="text" id="cat5" class="nes-input" placeholder="Category 5">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Questions Grid Setup -->
+            <div class="setup-section">
+                <h3>Questions & Answers:</h3>
+                <div class="round-tabs">
+                    <div id="roundTabs" class="round-navigation">
+                        <!-- Round tabs will be generated dynamically -->
+                    </div>
+                </div>
+                
+                <table id="setupGrid" class="nes-table is-bordered setup-table">
+                    <thead>
+                        <tr id="setupHeaders">
+                            <!-- Headers will be generated dynamically -->
+                        </tr>
+                    </thead>
+                    <tbody id="setupBody">
+                        <!-- Grid will be generated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="setup-actions">
+                <button type="button" class="nes-btn is-success" onclick="finishSetup()">Start Playing!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Play Mode -->
+    <div id="playMode" class="game-mode hidden">
+        <!-- Round Selection for Play Mode -->
+        <div class="play-header">
+            <div class="nes-container is-dark">
+                <div class="round-info">
+                    <h2 id="currentRoundTitle">Round 1</h2>
+                    <div class="round-navigation">
+                        <div id="playRoundTabs">
+                            <!-- Round tabs for play mode -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Board -->
+        <div class="game-board">
+            <table id="gameGrid" class="nes-table is-bordered game-table">
+                <thead>
+                    <tr id="gameHeaders">
+                        <!-- Category headers -->
+                    </tr>
+                </thead>
+                <tbody id="gameBody">
+                    <!-- Game grid -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="scoreboard">
+            <div class="nes-container with-title">
+                <p class="title">Scoreboard</p>
+                <div class="players">
+                    <div class="player-panel">
+                        <div class="nes-container is-rounded">
+                            <h4>Player 1</h4>
+                            <div class="score-display">
+                                <span class="nes-text is-success" id="player1Score">$0</span>
+                            </div>
+                            <div class="score-controls">
+                                <button class="nes-btn is-success" onclick="updateScore(1, 100)">+$100</button>
+                                <button class="nes-btn is-success" onclick="updateScore(1, 200)">+$200</button>
+                                <button class="nes-btn is-error" onclick="updateScore(1, -100)">-$100</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="player-panel">
+                        <div class="nes-container is-rounded">
+                            <h4>Player 2</h4>
+                            <div class="score-display">
+                                <span class="nes-text is-error" id="player2Score">$0</span>
+                            </div>
+                            <div class="score-controls">
+                                <button class="nes-btn is-success" onclick="updateScore(2, 100)">+$100</button>
+                                <button class="nes-btn is-success" onclick="updateScore(2, 200)">+$200</button>
+                                <button class="nes-btn is-error" onclick="updateScore(2, -100)">-$100</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question/Answer Modal -->
+    <div id="questionModal" class="modal-overlay hidden">
+        <div class="nes-container is-rounded with-title question-modal">
+            <p class="title">Question</p>
+            <div class="question-content">
+                <div class="nes-container is-dark question-box">
+                    <p id="questionText">Question will appear here</p>
+                </div>
+                
+                <div id="answerSection" class="answer-section hidden">
+                    <div class="nes-container is-success answer-box">
+                        <p><strong>Answer:</strong></p>
+                        <p id="answerText">Answer will appear here</p>
+                    </div>
+                </div>
+                
+                <div class="question-actions">
+                    <button type="button" id="revealBtn" class="nes-btn is-warning" onclick="revealAnswer()">Reveal Answer</button>
+                    <button type="button" class="nes-btn is-primary" onclick="closeQuestion()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Setup Question Modal -->
+    <div id="setupQuestionModal" class="modal-overlay hidden">
+        <div class="nes-container is-rounded with-title">
+            <p class="title">Enter Question & Answer</p>
+            <div class="setup-question-content">
+                <div class="nes-field">
+                    <label for="questionInput">Question:</label>
+                    <textarea id="questionInput" class="nes-textarea" rows="3"></textarea>
+                </div>
+                
+                <div class="nes-field">
+                    <label for="answerInput">Answer:</label>
+                    <textarea id="answerInput" class="nes-textarea" rows="2"></textarea>
+                </div>
+                
+                <div class="setup-question-actions">
+                    <button type="button" class="nes-btn is-success" onclick="saveQuestion()">Save</button>
+                    <button type="button" class="nes-btn" onclick="cancelQuestion()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html> 

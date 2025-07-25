@@ -1,0 +1,552 @@
+/* Custom Pixel Jeopardy Styles */
+:root {
+    --retro-blue: #0066cc;
+    --retro-purple: #8e44ad;
+    --retro-green: #27ae60;
+    --retro-red: #e74c3c;
+    --retro-yellow: #f1c40f;
+    --retro-orange: #e67e22;
+    --pixel-black: #000000;
+    --pixel-white: #ffffff;
+    --pixel-gray: #95a5a6;
+    --dark-bg: #2c3e50;
+    --neon-green: #00ff41;
+    --neon-blue: #00d4ff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Press Start 2P", monospace;
+    background: linear-gradient(45deg, #1e3c72, #2a5298);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    letter-spacing: 1px;
+    position: relative;
+    overflow-x: auto;
+}
+
+/* CRT Scanline Effect */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.03) 2px,
+        rgba(0, 0, 0, 0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+}
+
+/* Navigation */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+.game-title {
+    font-size: 18px;
+    color: var(--neon-green);
+    text-shadow: 2px 2px 0px var(--pixel-black);
+    margin: 0;
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Modal Overlays */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1001;
+    backdrop-filter: blur(2px);
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+/* Enhanced NES Container styling */
+.nes-container.with-title {
+    background: var(--pixel-white);
+    border: 4px solid var(--pixel-black);
+    box-shadow: 
+        inset -4px -4px 0px var(--pixel-gray),
+        inset 4px 4px 0px var(--pixel-white),
+        4px 4px 8px rgba(0, 0, 0, 0.3);
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Menu Styling */
+.menu-options {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    padding: 20px;
+}
+
+.menu-btn {
+    width: 200px;
+    font-size: 12px;
+    transition: all 0.1s ease;
+}
+
+.menu-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.menu-btn:active {
+    transform: translateY(1px);
+}
+
+/* Game Mode Styling */
+.game-mode {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Setup Mode */
+.setup-section {
+    margin-bottom: 30px;
+}
+
+.setup-section h3 {
+    color: var(--retro-blue);
+    text-shadow: 1px 1px 0px var(--pixel-black);
+    margin-bottom: 15px;
+}
+
+.categories-input {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.setup-table {
+    width: 100%;
+    font-size: 10px;
+}
+
+.setup-table td {
+    padding: 15px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 50px;
+    background: var(--pixel-white);
+    position: relative;
+}
+
+.setup-table td:hover {
+    background: var(--neon-blue);
+    color: var(--pixel-white);
+    transform: scale(1.05);
+}
+
+.setup-table td.filled {
+    background: var(--retro-green);
+    color: var(--pixel-white);
+}
+
+.setup-table td.filled::after {
+    content: "✓";
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 8px;
+}
+
+/* Round Navigation */
+.round-navigation {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.round-tab {
+    padding: 10px 20px;
+    background: var(--pixel-gray);
+    border: 2px solid var(--pixel-black);
+    cursor: pointer;
+    font-size: 10px;
+    transition: all 0.2s ease;
+}
+
+.round-tab:hover {
+    background: var(--retro-blue);
+    color: var(--pixel-white);
+}
+
+.round-tab.active {
+    background: var(--retro-purple);
+    color: var(--pixel-white);
+    transform: translateY(-2px);
+}
+
+/* Play Mode */
+.play-header {
+    margin-bottom: 20px;
+}
+
+.round-info {
+    text-align: center;
+    padding: 15px;
+}
+
+.round-info h2 {
+    color: var(--neon-green);
+    text-shadow: 2px 2px 0px var(--pixel-black);
+    margin: 0 0 15px 0;
+    font-size: 16px;
+}
+
+/* Game Board */
+.game-board {
+    margin-bottom: 30px;
+    overflow-x: auto;
+}
+
+.game-table {
+    width: 100%;
+    font-size: 12px;
+    table-layout: fixed;
+}
+
+.game-table th {
+    background: var(--retro-purple);
+    color: var(--pixel-white);
+    padding: 15px 8px;
+    font-size: 10px;
+    text-align: center;
+    text-shadow: 1px 1px 0px var(--pixel-black);
+    word-wrap: break-word;
+}
+
+.game-table td {
+    padding: 20px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--retro-blue);
+    color: var(--pixel-white);
+    font-weight: bold;
+    text-shadow: 1px 1px 0px var(--pixel-black);
+    position: relative;
+    min-height: 80px;
+}
+
+.game-table td:hover {
+    background: var(--neon-blue);
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+}
+
+.game-table td.used {
+    background: var(--pixel-gray);
+    color: var(--pixel-black);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.game-table td.used::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: var(--retro-green);
+}
+
+.game-table td.used:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Scoreboard */
+.scoreboard {
+    position: sticky;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(5px);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.players {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.player-panel h4 {
+    text-align: center;
+    margin: 0 0 10px 0;
+    font-size: 12px;
+    color: var(--dark-bg);
+}
+
+.score-display {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.score-display span {
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0px var(--pixel-black);
+}
+
+.score-controls {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.score-controls button {
+    font-size: 8px;
+    padding: 5px 8px;
+}
+
+/* Question Modal */
+.question-modal {
+    min-width: 500px;
+    max-width: 80vw;
+}
+
+.question-box {
+    margin-bottom: 20px;
+    padding: 20px;
+    text-align: center;
+}
+
+.question-box p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--neon-green);
+    text-shadow: 1px 1px 0px var(--pixel-black);
+}
+
+.answer-section {
+    margin-bottom: 20px;
+}
+
+.answer-box {
+    padding: 15px;
+    text-align: center;
+    background: var(--retro-green);
+}
+
+.answer-box p {
+    margin: 5px 0;
+    color: var(--pixel-white);
+    text-shadow: 1px 1px 0px var(--pixel-black);
+}
+
+.question-actions, .setup-question-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Setup Question Modal */
+.setup-question-content {
+    padding: 20px;
+}
+
+.setup-question-content .nes-field {
+    margin-bottom: 20px;
+}
+
+.setup-question-content label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 10px;
+    color: var(--dark-bg);
+}
+
+/* Help Modal */
+.help-content {
+    padding: 20px;
+    text-align: center;
+}
+
+.help-content p {
+    margin: 10px 0;
+    font-size: 10px;
+    line-height: 1.5;
+    color: var(--dark-bg);
+}
+
+/* Button Enhancements */
+.nes-btn {
+    transition: all 0.15s ease;
+    cursor: pointer;
+    font-family: "Press Start 2P", monospace;
+}
+
+.nes-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.nes-btn:active {
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.nes-btn.is-success {
+    background: var(--retro-green);
+    color: var(--pixel-white);
+}
+
+.nes-btn.is-error {
+    background: var(--retro-red);
+    color: var(--pixel-white);
+}
+
+.nes-btn.is-warning {
+    background: var(--retro-yellow);
+    color: var(--pixel-black);
+}
+
+.nes-btn.is-primary {
+    background: var(--retro-blue);
+    color: var(--pixel-white);
+}
+
+/* Input Enhancements */
+.nes-input, .nes-textarea {
+    font-family: "Press Start 2P", monospace;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.nes-textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 14px;
+    }
+    
+    .nav-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .categories-input {
+        grid-template-columns: 1fr;
+    }
+    
+    .game-table {
+        font-size: 10px;
+    }
+    
+    .game-table th, .game-table td {
+        padding: 10px 4px;
+    }
+    
+    .question-modal {
+        min-width: 300px;
+        margin: 20px;
+    }
+    
+    .question-box p {
+        font-size: 12px;
+    }
+    
+    .players {
+        grid-template-columns: 1fr;
+    }
+    
+    .score-controls button {
+        font-size: 6px;
+        padding: 4px 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .game-mode {
+        padding: 10px;
+    }
+    
+    .setup-table {
+        font-size: 8px;
+    }
+    
+    .setup-table td {
+        padding: 8px 4px;
+    }
+    
+    .game-table {
+        font-size: 8px;
+    }
+    
+    .game-table th {
+        font-size: 8px;
+    }
+}
+
+/* Animation Keyframes */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes glow {
+    0% { box-shadow: 0 0 5px rgba(0, 212, 255, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.6); }
+    100% { box-shadow: 0 0 5px rgba(0, 212, 255, 0.3); }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+.glow {
+    animation: glow 2s infinite;
+} 
