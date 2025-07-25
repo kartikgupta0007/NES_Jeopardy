@@ -13,6 +13,13 @@
 <body>
     <!-- Home Screen -->
     <div id="homeScreen" class="game-screen">
+        <!-- Parallax Background Layers -->
+        <div class="parallax-container">
+            <div class="parallax-layer parallax-back" id="parallax-back-home"></div>
+            <div class="parallax-layer parallax-middle" id="parallax-middle-home"></div>
+            <div class="parallax-layer parallax-front" id="parallax-front-home"></div>
+        </div>
+        
         <div class="screen-container">
             <div class="game-logo">
                 <h1>🎮 PIXEL JEOPARDY</h1>
@@ -71,69 +78,84 @@
 
     <!-- Setup Screen -->
     <div id="setupScreen" class="game-screen hidden">
+        <!-- Parallax Background Layers -->
+        <div class="parallax-container">
+            <div class="parallax-layer parallax-back" id="parallax-back"></div>
+            <div class="parallax-layer parallax-middle" id="parallax-middle"></div>
+            <div class="parallax-layer parallax-front" id="parallax-front"></div>
+        </div>
+        
         <div class="screen-container">
-            <div class="screen-header">
-                <h2>GAME SETUP</h2>
+            <div class="setup-header">
+                <div class="setup-title-container">
+                    <h1 class="setup-title">ROUND SETUP</h1>
+                    <div class="setup-subtitle">Configure your game categories and questions</div>
+                </div>
                 <button type="button" class="nes-btn is-error header-btn" onclick="goHome()">HOME</button>
             </div>
 
-            <div class="setup-content">
-                <!-- Round Selection -->
-                <div class="setup-section">
-                    <label for="numRounds" class="setup-label">NUMBER OF ROUNDS:</label>
-                    <div class="nes-field">
-                        <input type="number" id="numRounds" class="nes-input" min="1" max="3" value="1">
+            <div class="setup-main-layout">
+                <!-- Left Panel - Controls -->
+                <div class="setup-left-panel">
+                    <!-- Round Selection -->
+                    <div class="setup-control-section">
+                        <h3 class="control-title">ROUNDS: 1-5</h3>
+                        <div class="round-selector">
+                            <input type="number" id="numRounds" class="nes-input round-input" min="1" max="3" value="2">
+                        </div>
+                    </div>
+
+                    <!-- Round Tabs -->
+                    <div class="setup-control-section">
+                        <div id="roundTabs" class="round-tabs-vertical">
+                            <!-- Round tabs will be generated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Categories Setup -->
+                    <div class="setup-control-section">
+                        <h3 class="control-title">CATEGORIES:</h3>
+                        <div class="categories-list">
+                            <div class="category-item">
+                                <input type="text" id="cat1" class="nes-input category-input-new" placeholder="Fire">
+                            </div>
+                            <div class="category-item">
+                                <input type="text" id="cat2" class="nes-input category-input-new" placeholder="Water">
+                            </div>
+                            <div class="category-item">
+                                <input type="text" id="cat3" class="nes-input category-input-new" placeholder="Earth">
+                            </div>
+                            <div class="category-item">
+                                <input type="text" id="cat4" class="nes-input category-input-new" placeholder="Saer">
+                            </div>
+                            <div class="category-item">
+                                <input type="text" id="cat5" class="nes-input category-input-new" placeholder="wow 5">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setup-actions">
+                        <button type="button" class="nes-btn is-warning" onclick="loadSampleData()">LOAD SAMPLE</button>
+                        <button type="button" class="nes-btn is-success start-btn-new" onclick="startGame()">START PLAYING!</button>
                     </div>
                 </div>
 
-                <!-- Round Tabs -->
-                <div class="round-tabs">
-                    <div id="roundTabs" class="round-navigation">
-                        <!-- Round tabs will be generated dynamically -->
+                <!-- Right Panel - Questions Grid -->
+                <div class="setup-right-panel">
+                    <div class="setup-grid-header">
+                        <h3 class="grid-title">QUESTIONS & ANSWERS:</h3>
                     </div>
-                </div>
-
-                <!-- Categories Setup -->
-                <div class="setup-section">
-                    <h3 class="setup-label">CATEGORIES:</h3>
-                    <div class="categories-grid">
-                        <div class="nes-field">
-                            <input type="text" id="cat1" class="nes-input category-input" placeholder="Category 1">
-                        </div>
-                        <div class="nes-field">
-                            <input type="text" id="cat2" class="nes-input category-input" placeholder="Category 2">
-                        </div>
-                        <div class="nes-field">
-                            <input type="text" id="cat3" class="nes-input category-input" placeholder="Category 3">
-                        </div>
-                        <div class="nes-field">
-                            <input type="text" id="cat4" class="nes-input category-input" placeholder="Category 4">
-                        </div>
-                        <div class="nes-field">
-                            <input type="text" id="cat5" class="nes-input category-input" placeholder="Category 5">
+                    
+                    <div class="setup-grid-container-new">
+                        <div class="questions-board">
+                            <div class="category-headers" id="categoryHeaders">
+                                <!-- Category headers will be generated dynamically -->
+                            </div>
+                            <div class="questions-grid" id="questionsGrid">
+                                <!-- Questions grid will be generated dynamically -->
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Questions Grid Setup -->
-                <div class="setup-section">
-                    <h3 class="setup-label">QUESTIONS & ANSWERS:</h3>
-                    <div class="setup-grid-container">
-                        <table id="setupGrid" class="setup-table">
-                            <thead>
-                                <tr id="setupHeaders">
-                                    <!-- Headers will be generated dynamically -->
-                                </tr>
-                            </thead>
-                            <tbody id="setupBody">
-                                <!-- Grid will be generated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="setup-actions">
-                    <button type="button" class="nes-btn is-success start-btn" onclick="startGame()">START PLAYING!</button>
                 </div>
             </div>
         </div>
@@ -141,6 +163,13 @@
 
     <!-- Game Playing Screen -->
     <div id="gameScreen" class="game-screen hidden">
+        <!-- Parallax Background Layers -->
+        <div class="parallax-container">
+            <div class="parallax-layer parallax-back" id="parallax-back-game"></div>
+            <div class="parallax-layer parallax-middle" id="parallax-middle-game"></div>
+            <div class="parallax-layer parallax-front" id="parallax-front-game"></div>
+        </div>
+        
         <div class="screen-container">
             <!-- Game Header -->
             <div class="game-header">
@@ -173,13 +202,21 @@
             <!-- Scoreboard -->
             <div class="game-scoreboard">
                 <div class="player-score">
-                    <h3>PLAYER 1</h3>
-                    <div class="score-value" id="player1Score">0</div>
+                    <input type="text" id="player1Name" class="nes-input player-name-input" placeholder="Player 1" maxlength="12">
+                    <div class="score-container">
+                        <button class="nes-btn is-error score-control-btn" onclick="changeScore(1, -100)">-</button>
+                        <div class="score-value" id="player1Score">0</div>
+                        <button class="nes-btn is-success score-control-btn" onclick="changeScore(1, 100)">+</button>
+                    </div>
                 </div>
                 
                 <div class="player-score">
-                    <h3>PLAYER 2</h3>
-                    <div class="score-value" id="player2Score">0</div>
+                    <input type="text" id="player2Name" class="nes-input player-name-input" placeholder="Player 2" maxlength="12">
+                    <div class="score-container">
+                        <button class="nes-btn is-error score-control-btn" onclick="changeScore(2, -100)">-</button>
+                        <div class="score-value" id="player2Score">0</div>
+                        <button class="nes-btn is-success score-control-btn" onclick="changeScore(2, 100)">+</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -190,6 +227,7 @@
         <div class="question-modal-container">
             <div class="question-header">
                 <h3>QUESTION:</h3>
+                <button type="button" class="modal-close-btn" onclick="closeQuestion()">✕</button>
             </div>
             
             <div class="question-content">
@@ -206,36 +244,47 @@
             
             <div class="question-actions">
                 <button type="button" id="revealBtn" class="nes-btn is-warning action-btn" onclick="revealAnswer()">REVEAL ANSWER</button>
-                <div class="score-buttons">
-                    <button class="nes-btn is-success score-btn" onclick="updateScore(1, getCurrentQuestionValue())">P1 CORRECT</button>
-                    <button class="nes-btn is-error score-btn" onclick="updateScore(1, -getCurrentQuestionValue())">P1 WRONG</button>
-                    <button class="nes-btn is-success score-btn" onclick="updateScore(2, getCurrentQuestionValue())">P2 CORRECT</button>
-                    <button class="nes-btn is-error score-btn" onclick="updateScore(2, -getCurrentQuestionValue())">P2 WRONG</button>
-                </div>
-                <button type="button" class="nes-btn is-primary action-btn" onclick="closeQuestion()">CLOSE</button>
             </div>
         </div>
     </div>
 
     <!-- Setup Question Modal -->
     <div id="setupQuestionModal" class="modal-overlay hidden">
-        <div class="nes-container is-rounded with-title">
-            <p class="title">ENTER QUESTION & ANSWER</p>
-            <div class="setup-question-content">
-                <div class="nes-field">
-                    <label for="questionInput" class="input-label">QUESTION:</label>
-                    <textarea id="questionInput" class="nes-textarea" rows="3"></textarea>
+        <div class="question-editor-modal">
+            <div class="editor-header">
+                <h2 class="editor-title">QUESTION EDITOR</h2>
+                <div class="editor-subtitle">Create or edit your Jeopardy question</div>
+            </div>
+            
+            <div class="editor-content">
+                <div class="editor-field">
+                    <label for="questionInput" class="editor-label">QUESTION TEXT:</label>
+                    <div class="editor-input-container">
+                        <textarea id="questionInput" class="nes-textarea editor-textarea" rows="4" placeholder="Enter your question here..."></textarea>
+                    </div>
                 </div>
                 
-                <div class="nes-field">
-                    <label for="answerInput" class="input-label">ANSWER:</label>
-                    <textarea id="answerInput" class="nes-textarea" rows="2"></textarea>
+                <div class="editor-field">
+                    <label for="answerInput" class="editor-label">ANSWER TEXT:</label>
+                    <div class="editor-input-container">
+                        <textarea id="answerInput" class="nes-textarea editor-textarea" rows="3" placeholder="Enter the answer here..."></textarea>
+                    </div>
                 </div>
                 
-                <div class="setup-question-actions">
-                    <button type="button" class="nes-btn is-success" onclick="saveQuestion()">SAVE</button>
-                    <button type="button" class="nes-btn" onclick="cancelQuestion()">CANCEL</button>
+                <div class="editor-preview">
+                    <div class="preview-question">
+                        <strong>Preview Question:</strong> <span id="questionPreview">Type your question above</span>
+                    </div>
+                    <div class="preview-answer">
+                        <strong>Preview Answer:</strong> <span id="answerPreview">Type your answer above</span>
+                    </div>
                 </div>
+            </div>
+            
+            <div class="editor-actions">
+                <button type="button" class="nes-btn is-success editor-btn" onclick="saveQuestion()">💾 SAVE</button>
+                <button type="button" class="nes-btn is-error editor-btn" onclick="deleteQuestion()">🗑️ DELETE</button>
+                <button type="button" class="nes-btn editor-btn" onclick="cancelQuestion()">❌ CANCEL</button>
             </div>
         </div>
     </div>
